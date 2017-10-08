@@ -1,7 +1,11 @@
+// fortune's algorithm completed with aid from
+// http://www.ams.org/samplings/feature-column/fcarc-voronoi
+
+
 var ctx = canvas.getContext('2d');
 canvas.width = window.innerWidth;
 canvas.height= window.innerHeight;
-var nodes_count = 15;
+var nodes_count = 50;
 var nodes = [];
 var counter = 0;
 
@@ -32,20 +36,20 @@ function get_x(fy, d, y) {
 }
 
 function get_y(fx, fy, d, x){
-  // return (Math.pow(x-fx,2) + Math.pow(fy, 2) - Math.pow(d, 2))/(2*(fy-d));
-  return 0;
+  return (Math.pow(x-fx,2) + Math.pow(fy, 2) - Math.pow(d, 2))/(2*(fy-d));
+  // return 0;
 }
 
-// for(i = 0; i < nodes_count; i++){
-//   var node = {
-//     x: getRand(0,canvas.width),
-//     y: getRand(0,canvas.height),
-//     radius: 5,
-//     x_vel: 0, 
-//     y_vel: 0
-//   };
-//   nodes.push(node);
-// }
+for(i = 0; i < nodes_count; i++){
+  var node = {
+    x: getRand(0,canvas.width),
+    y: getRand(0,canvas.height),
+    radius: 5,
+    x_vel: 0, 
+    y_vel: 0
+  };
+  nodes.push(node);
+}
 //
 function push_node(x_, y_) {
   var node = {
@@ -59,18 +63,20 @@ function push_node(x_, y_) {
   nodes.push(node);
 }
 
-push_node(100, 100);
-push_node(150, 50);
+// push_node(100, 100);
+// push_node(150, 50);
 // push_node(200, 100);
 
 nodes.sort(function(a, b) {
     return b.y < a.y;
 });
 
+// see: 
+// http://www.paul-reed.co.uk/site.htm
 function parabola_intersection(p1, x1, y1, p2, x2, y2) {
   var a, b, c;
   var a = 1 / (4 * p1) - 1 / (4 * p2);
-  var b = -x1 / (2 * p1) - -x2 / (2 * p2);
+  var b = -x1 / (2 * p1) + x2 / (2 * p2);
   var c = Math.pow(x1, 2) / (4 * p1) - y1 - (Math.pow(x2, 2) / (4 * p2) - y2);
   var d = Math.sqrt(Math.pow(b, 2) - 4 * a * c);
   return [(-b + d) / (2 * a), (-b - d) / (2 * a)];
@@ -80,7 +86,9 @@ function draw() {
   ctx=canvas.getContext("2d");
   canvas.width = window.innerWidth;
   canvas.height= window.innerHeight;
-  var directrix = (counter += 0.2);
+
+  var directrix = (counter += 0.5);
+  // var directrix = 0;
 
   for (i = 0; i < nodes.length; i++) {
     // get the two x coordinates
@@ -91,8 +99,6 @@ function draw() {
     var x0 = nodes[i].x - get_x(nodes[i].y, directrix, y0);
     var y1 = 0;
     var x1 = nodes[i].x + get_x(nodes[i].y, directrix, y1); //add the focus before the function
-    // focus a, b
-    // 0
 
     ctx.strokeStyle = "rgb(0,0,0)";
     // draw quadratic curves
@@ -120,17 +126,20 @@ function draw() {
     var v2_y = (n2.y + directrix)/2;
     var p2 = directrix - v2_y;
 
-    [xa,xb] = parabola_intersection(p1, v1_x, v1_y, p2, v2_x, v2_y);
-    
-    ctx.beginPath();
-    ctx.arc(xa, get_y(n1.x, n1.y, directrix, xa), 5, 0, 2 * Math.PI);
-    ctx.fillStyle = '#000000';
-    ctx.fill();
+    if (p1 > 0){
+      [xa,xb] = parabola_intersection(p1, v1_x, v1_y, p2, v2_x, v2_y);
+      // console.log(parabola_intersection(p1, v1_x, v1_y, p2, v2_x, v2_y));
+      // draw intersection points 
+      ctx.beginPath();
+      ctx.arc(xa, get_y(n1.x, n1.y, directrix, xa), 5, 0, 2 * Math.PI);
+      ctx.fillStyle = '#FF0000';
+      ctx.fill();
 
-    ctx.beginPath();
-    ctx.arc(xb, get_y(n1.x, n1.y, directrix, xb), 5, 0, 2 * Math.PI);
-    ctx.fillStyle = '#000000';
-    ctx.fill();
+      ctx.beginPath();
+      ctx.arc(xb, get_y(n1.x, n1.y, directrix, xb), 5, 0, 2 * Math.PI);
+      ctx.fillStyle = '#FF0000';
+      ctx.fill();
+    }
   }
   //draw directrix line 
   ctx.beginPath();
